@@ -97,50 +97,47 @@ results_df %>%
 
 
 
-```{r, error = TRUE}
-city_prop_test = function(df) {
-  
-#  n_unsovled ...
-#  n_total ... 
-  
-  prop.test(.....)
-  
-}
-homicide_df = 
-  read_csv("data/homicide-data.csv") %>% 
+## Problem 2 
+
+### import, unnest, and clean the data sets
+
+```{r, message=FALSE}
+path_df <- 
+  tibble(
+    path = list.files("./lda_data")
+    ) %>% 
   mutate(
-    city_state = str_c(city, state, sep = "_"),
-    resolved = case_when(
-      disposition == "Closed without arrest" ~ "unsolved",
-      disposition == "Open/No arrest"        ~ "unsolved",
-      disposition == "Closed by arrest"      ~ "solved",
-    )
-  ) %>% 
-  select(city_state, resolved) %>% 
-  filter(city_state != "Tulsa_AL") %>% 
-  nest(data = resolved)
+    path = str_c("./lda_data/", path),
+    data = map(.x = path, ~read_csv(.x))) %>%
+  unnest() %>%
+  mutate(
+    path = str_replace(path, "./lda_data/", ""), 
+    path = str_replace(path, ".csv", "")
+  ) %>%
+  separate(path, into = c("group", "id"), sep = "_") %>%
+  pivot_longer(
+    week_1 : week_8, 
+    names_to = "week", 
+    names_prefix = "week_",
+    values_to = "observation"
+  ) %>%
+  mutate(
+    group = str_replace(group, "con", "control"),
+    group = str_replace(group, "exp", "experiment")
+  )
 ```
 
 
-
-
-
-## Problem 2 ideas ...
-
-
-import one dataset 
+### Spaghetti plot
 
 ```{r}
-data_1 = read_csv("lda_data/con_01.csv")
+path_plot <- path_df %>%
+  ggplot(aes(x = week, y = observation, group = id, color = id)) + 
+  geom_line(alpha = 0.8) + 
+  facet_grid(~group) +
+  labs(title = "Observations on Each Subject Over Time")
+path_plot
 ```
 
-```{r, error = TRUE}
-path_df = 
-  tibble(
-    path = list.files("lda_data"),
-  ) %>% 
-  mutate(
-    path = str_c("lda_data/", path),
-#    data = map(.............))
-read_csv(path_df$path[[1]])
-```
+According to the Spaghetti plot, the experimental group shows increasing values of observation in eight weeks. Comparatively, the control group doesn't have obvious increasing or decreasing in observation values overall. For both groups, the observation values are not increasing gradually or keeping constant over time, but fluctuating a lot. 
+
