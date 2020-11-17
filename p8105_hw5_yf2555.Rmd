@@ -195,6 +195,7 @@ sim_plot_1 <-
             reject_prop = p_value/number) %>%
   ggplot(aes(x = mu, y = reject_prop)) + 
   geom_point() + 
+  geom_smooth() +
   labs(
     x = "True Mean", 
     y = "Proportion of Rejecting Null Hypothesis"
@@ -250,4 +251,10 @@ sim_plot_3 <-
 sim_plot_3
 ```
 
-According to Plot 2 and Plot 3, 
+- According to Plot 3, the average estimated mu is close to the true mean when mu equals 0, 3, 4, 5, and 6; while the average estimated mu differs from the true mean when mu equals 1 and 2. 
+
+- From the test and plot 1, we can observe that the power of test is about 1 when mu = 3, 4, 5. It means that the test is able to reject the samples that their estimated mu doesn't equal to 0, so the rejected samples have their estimated mu closer to their true mean (3 or 4 or 5 or 6). 
+
+- Comparatively, when mu = 1 and 2, the power of test is much lower than 0.5. It means that the test is not able to reject all samples that their estimated mu doesn't equal to 0, so the rejected samples have their estimated mu more variant from their true mean.
+
+- When mu = 0, it is a different story. The rejected samples have their estimated mu close to their true mean, 0, which is exactly the null hypothesis. Therefore, even though its power of test is relatively low, the rejected samples' estimated mu is still close to the true mean. 
