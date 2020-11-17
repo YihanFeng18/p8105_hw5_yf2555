@@ -9,7 +9,7 @@ output: github_document
 ```{r setup, include = FALSE}
 library(tidyverse)
 library(rvest)
-library(purrr)
+library(dplyr)
 knitr::opts_chunk$set(
   fig.width = 6,
   fig.asp = .6,
@@ -141,7 +141,17 @@ According to the Spaghetti plot, the experimental group shows increasing values 
 
 ## Problem 3
 
-### set up the simulation function and further calculation
+### Simulation
+
+In this simulation, we want to explore power in a one-sample t-test.
+/
+Null hypothesis: $\mu$ equals 0
+/
+Alternative hypothesis: $\mu$ doesn't equal 0
+/
+
+Set up the simulation function and t test
+
 ```{r}
 set.seed(2333)
 
@@ -154,14 +164,14 @@ sim_fxn <- function(n = 30, mu, sigma = 5){
 ```
 
 
-### simulation when mu equals 0
+simulation when mu equals 0
 ```{r}
 sim_mu_0 <- rerun(5000, sim_fxn(mu = 0)) %>%
   bind_rows()
 ```
 
 
-### simulation when mu equals 0, 1, 2, 3, 4, 5, 6
+simulation when mu equals 0, 1, 2, 3, 4, 5, 6
 ```{r}
 sim <- 
   tibble(mu = c(0,1,2,3,4,5,6)) %>%
@@ -172,25 +182,72 @@ sim <-
 ```
 
 
+### Plots
+
+Plot 1: power of the test (y) vs. the true value of mu (x)
+
+```{r message = FALSE}
+sim_plot_1 <- 
+  sim %>%
+  group_by(mu) %>%
+  summarize(p_value = sum(p.value < 0.05), 
+            number = n(), 
+            reject_prop = p_value/number) %>%
+  ggplot(aes(x = mu, y = reject_prop)) + 
+  geom_point() + 
+  labs(
+    x = "True Mean", 
+    y = "Proportion of Rejecting Null Hypothesis"
+  )
+
+sim_plot_1
+```
+
+According to Plot 1, as the true mean increases, the proportion of rejecting null hypothesis also increases. In other words, as the effect size increases, the power of the test also increases. 
+
+
+
+Plot 2: the average estimate of $\hat{\mu}$ (y) vs. true value of $\mu$ (x)
+
+```{r message = FALSE}
+sim_plot_2 <- 
+  sim %>%
+  group_by(mu) %>%
+  summarize(estimate_avg = mean(estimate)) %>%
+  ggplot(aes(x = mu, y = estimate_avg)) + 
+  geom_point() +
+  geom_smooth(color = "green") +
+  labs(
+    x = "True Mean", 
+    y = "Average of Estimated Mean", 
+    title = " Average of Estimated Mean vs. True Mean Among All Samples"
+  )
+
+sim_plot_2
+```
 
 
 
 
+Plot 3: the average estimate of $\hat{\mu}$ in rejected null hypothesis (y) vs. true value of $\mu$ (x)
 
 
+```{r message = FALSE}
+sim_plot_3 <- 
+  sim %>%
+  filter(p.value < 0.05) %>%
+  group_by(mu) %>%
+  summarize(estimate_avg = mean(estimate)) %>%
+  ggplot(aes(x = mu, y = estimate_avg)) + 
+  geom_point() +
+  geom_smooth(color = "blue") +
+  labs(
+    x = "True Mean", 
+    y = "Average of Estimated Mean",
+    title = " Average of Estimated Mean vs. True Mean Among Rejected Samples"
+  )
 
+sim_plot_3
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+According to Plot 2 and Plot 3, 
